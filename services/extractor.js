@@ -1,29 +1,19 @@
-const { execSync } = require('child_process');
+const { exec } = require('youtube-dl-exec');
 const path = require('path');
-const fs = require('fs');
-const https = require('https');
-const http = require('http');
 
 const extractAudioFromUrl = (url) => {
   return new Promise((resolve, reject) => {
-    try {
-      const outputPath = path.join(__dirname, '../uploads', `audio_${Date.now()}.mp3`);
-      
-      // Use yt-dlp to download audio from URL
-      execSync(`yt-dlp -x --audio-format mp3 -o "${outputPath}" "${url}"`, {
-        timeout: 60000,
-        stdio: 'pipe'
-      });
+    const outputPath = path.join(__dirname, '../uploads', `audio_${Date.now()}`);
+    const audioPath = `${outputPath}.mp3`;
 
-      if (!fs.existsSync(outputPath)) {
-        reject(new Error('Audio extraction failed — file not created'));
-        return;
-      }
-
-      resolve(outputPath);
-    } catch (err) {
-      reject(new Error(`Audio extraction failed: ${err.message}`));
-    }
+    exec(url, {
+      extractAudio: true,
+      audioFormat: 'mp3',
+      output: audioPath,
+      noPlaylist: true,
+    })
+      .then(() => resolve(audioPath))
+      .catch((err) => reject(new Error(`Audio extraction failed: ${err.message}`)));
   });
 };
 
